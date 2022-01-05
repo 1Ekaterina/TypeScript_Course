@@ -1,10 +1,10 @@
-export function renderBlock (elementId, html) {
+export function renderBlock (elementId: string, html: string) : void {
   const element = document.getElementById(elementId)
   element.innerHTML = html
-}
+};
 
-export function renderToast (message, action) {
-  let messageText = ''
+export function renderToast (message, action) : void {
+  let messageText : string = '';
   
   if (message != null) {
     messageText = `
@@ -26,7 +26,7 @@ export function renderToast (message, action) {
       if (action != null && action.handler != null) {
         action.handler()
       }
-      renderToast(null)
+      renderToast(null, action)
     }
   }
-}
+};
