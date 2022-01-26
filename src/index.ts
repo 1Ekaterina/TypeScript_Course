@@ -1,39 +1,79 @@
-import { Author } from './store/domain/author.js'
-import { Book } from './store/domain/book.js'
-import { Genre } from './store/domain/genre.js'
-import { SearchFilter } from './store/domain/search-filter.js'
-import { BukvoedProvider } from './store/providers/bukvoed/bukvoed-provider.js'
-import { OzonProvider } from './store/providers/ozon/ozon-provider.js'
-import {Provider} from "./store/domain/provider";
-
-const ozon: Provider = new OzonProvider()
-const bukvoed: Provider = new BukvoedProvider()
-
-// создаём общий фильтр для всех источников
-const filter: SearchFilter = {
-  name: 'it',
-  genre: Genre.Horror,
-  author: new Author('Stephen', 'King')
+export interface ICoordinates {
+  x: number,
+  y: number
+}
+export interface IFigureCircle {
+  radius: number;
+  circleCenter: ICoordinates;
+}
+export interface IFigureRectangle {
+  center: ICoordinates;
+  width: number;
+  height: number
 }
 
-// описываем логику сортировки по цене
-function sortByPrice(one: Book, two: Book) {
-  if (one.price > two.price) {
-    return 1
-  } else if (one.price < two.price) {
-    return -1
-  } else {
-    return 0
+export abstract class MyGraphicsPrimitive2D {
+  private _coordinates: ICoordinates;
+  constructor(x: number, y: number) {
+    this._coordinates = { x, y }
+  }
+  getCenter(): Readonly<ICoordinates> {
+    return this._coordinates
+  }
+  movePrimitive(x: number, y: number) {
+    this._coordinates.x = x;
+    this._coordinates.y = y;
   }
 }
 
-// запрашиваем разные источники по единому протоколу
-Promise.all([
-  ozon.find(filter),
-  bukvoed.find(filter)
-]).then((results) => {
-  // мерджим все результаты в один
-  const allResults: Book[] = [].concat(results[0], results[1])
-  // работаем с ними как с единым целым
-  allResults.sort(sortByPrice)
-})
+export abstract class MyAreaPrimitive2D extends MyGraphicsPrimitive2D {
+  abstract x: number;
+  abstract y: number;
+  abstract getArea(): void;
+}
+
+export class MyCircle extends MyAreaPrimitive2D {
+  private _circleCenter: IFigureCircle;
+  constructor(public x: number, public y: number, radius) {
+    super(x, y);
+    this._circleCenter = {
+      circleCenter: this.circleCenter,
+      radius
+    }
+  }
+  getCircleCenter(): Readonly<ICoordinates> {
+    return this.circleCenter
+  }
+  getRadius(): Readonly<number> {
+    return this._circleCenter.radius;
+  }
+  getArea(): number {
+    return Math.PI * (this.radius * 2)
+  }
+}
+
+export class MyRectangle extends MyAreaPrimitive2D {
+  private _rectangle: IFigureRectangle;
+  constructor(public x: number, public y: number, public width: number, public height: number) {
+    super(x, y);
+    this._rectangle = { center: this.center, width, height }
+  }
+  getArea(): number {
+    return this._rectangle.width * this._rectangle.height
+  }
+  getWidth(): number {
+    return this._rectangle.width
+  }
+  getHeight(): number {
+    return this._rectangle.height
+  }
+  getTopLeftBorder(): Readonly<ICoordinates> {
+    return this.center
+  }
+  getRightBottomBorder(): Readonly<ICoordinates> {
+    return {
+      x: this.center.x + this._rectangle.width,
+      y: this.center.y + this._rectangle.height
+    }
+  }
+}
